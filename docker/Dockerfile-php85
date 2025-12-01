@@ -2,7 +2,7 @@ FROM alpine:edge
 
 ADD entrypoint.sh /entrypoint.sh
 
-RUN apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/testing php85 php85-gmp php85-opcache bash hyperfine python3 py3-pip z3 z3-dev py3-z3 && \
+RUN apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/testing php85 php85-gmp bash hyperfine python3 py3-pip z3 z3-dev py3-z3 && \
     ln -sf /usr/bin/php85 /usr/bin/php && \
     touch /etc/php85/conf.d/01_jit.ini && \
     chmod 777 /etc/php85/conf.d/01_jit.ini && \
