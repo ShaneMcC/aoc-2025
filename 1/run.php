@@ -16,19 +16,14 @@
 	$part1 = $part2 = 0;
 	$value = $startValue;
 
-	foreach ($rotations as $r) {
-		$repeats = floor($r[1] / $dialSize);
-		$r[1] -= $repeats * $dialSize;
+	foreach ($rotations as [$d, $r]) {
+		$repeats = floor($r / $dialSize);
+		$r -= $repeats * $dialSize;
 		$part2 += $repeats;
 		$oldValue = $value;
+		$value += ($d == 'R') ? $r : 0 - $r;
 
-		if ($r[0] == 'R') {
-			$value += $r[1];
-		} else {
-			$value -= $r[1];
-		}
-
-		if ($oldValue != 0 && ($value < 0 || $value >= $dialSize || $value == 0)) {
+		if ($oldValue != 0 && ($value <= 0 || $value >= $dialSize)) {
 			$part2++;
 		}
 
