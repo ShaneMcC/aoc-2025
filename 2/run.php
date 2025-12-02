@@ -9,8 +9,13 @@
 	}
 
 	$part1 = 0;
+	$part2 = 0;
 	foreach ($entries as [$start, $end]) {
 		for ($i = $start; $i <= $end; $i++) {
+			$matches = preg_match('/^(.*)\1{1,}$/', $i);
+
+			if ($matches) { $part2 += $i; }
+
 			if (strlen($i) % 2 != 0) { continue; }
 
 			$first = substr($i, 0, strlen($i) / 2);
@@ -21,6 +26,4 @@
 	}
 
 	echo 'Part 1: ', $part1, "\n";
-
-	// $part2 = 0;
-	// echo 'Part 2: ', $part2, "\n";
+	echo 'Part 2: ', $part2, "\n";
