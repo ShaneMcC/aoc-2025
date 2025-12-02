@@ -8,20 +8,15 @@
 		$entries[] = [$start, $end];
 	}
 
-	$part1 = 0;
-	$part2 = 0;
+	$part1 = $part2 = 0;
 	foreach ($entries as [$start, $end]) {
 		for ($i = $start; $i <= $end; $i++) {
-			$matches = preg_match('/^(.*)\1{1,}$/', $i);
-
-			if ($matches) { $part2 += $i; }
-
-			if (strlen($i) % 2 != 0) { continue; }
-
-			$first = substr($i, 0, strlen($i) / 2);
-			$second = substr($i, strlen($i) / 2);
-
-			if ($first == $second) { $part1 += $i; }
+			if (preg_match('/^(.*)\1$/', $i)) {
+				$part1 += $i;
+				$part2 += $i;
+			} else if (preg_match('/^(.*)\1{1,}$/', $i)) {
+				$part2 += $i;
+			}
 		}
 	}
 
