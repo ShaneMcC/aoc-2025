@@ -3,29 +3,31 @@
 	require_once(dirname(__FILE__) . '/../common/common.php');
 	$input = getInputLines();
 
-	function getJoltage($line, $batteries) {
-		$len = strlen($line);
-
-		$values = array_fill(1, $batteries, -1);
-
-		for ($i = 0; $i < $len; $i++) {
-			$val = $line[$i];
-			for ($j = 1; $j <= $batteries; $j++) {
-				if ($i < $len - ($batteries - $j)) {
-					if ($val > $values[$j]) {
-						$values[$j] = $val;
-
-						for ($k = $j + 1; $k <= $batteries; $k++) {
-							$values[$k] = -1;
-						}
-
-						continue 2;
-					}
-				}
+	if (!function_exists('array_find_key')) {
+		function array_find_key($array, $callback) {
+			foreach ($array as $key => $x) {
+				if (call_user_func($callback, $x) === true)
+				return $key;
 			}
+			return null;
+		}
+	}
+
+	function getJoltage($line, $batteries) {
+		$line = str_split($line);
+		$result = 0;
+
+		$startPos = 0;
+		for ($i = 1; $i <= $batteries; $i++) {
+			$maxEndPos = count($line) - ($batteries - $i);
+			$allowedValues = array_slice($line, $startPos, $maxEndPos - $startPos);
+			$thisValue = max($allowedValues);
+			$startPos += array_find_key($allowedValues, fn ($x) => $x == $thisValue) + 1;
+
+			$result += $thisValue * pow(10, $batteries - $i);
 		}
 
-		return (int)implode("", $values);
+		return $result;
 	}
 
 	$part1 = 0;
