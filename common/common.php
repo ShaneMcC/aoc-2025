@@ -264,6 +264,23 @@
 	}
 
 	/**
+	 * Generator to provide each cell of a grid.
+	 *
+	 * @param $grid Grid to look at.
+	 * @param $wanted Cell content to look for.
+	 * @return Generator<array> of [$x, $y, $cell] items
+	 */
+	function wantedCells($grid, $wanted) {
+		foreach ($grid as $y => $row) {
+			foreach ($row as $x => $cell) {
+				if ($cell == $wanted) {
+					yield [$x, $y, $cell];
+				}
+			}
+		}
+	}
+
+	/**
 	 * Find all cells that have content that match $wanted
 	 *
 	 * @param $grid Grid to look at.
@@ -272,10 +289,8 @@
 	 */
 	function findCells($grid, $wanted): array {
 		$cells = [];
-		foreach (cells($grid) as [$x, $y, $cell]) {
-			if ($cell == $wanted) {
-				$cells[] = [$x, $y];
-			}
+		foreach (wantedCells($grid, $wanted) as [$x, $y, $cell]) {
+			$cells[] = [$x, $y];
 		}
 		return $cells;
 	}
