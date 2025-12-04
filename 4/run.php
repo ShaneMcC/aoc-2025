@@ -8,9 +8,7 @@
 	function removeRolls(&$map) {
 		$removals = [];
 
-		foreach (cells($map) as [$x, $y, $cell]) {
-			if ($cell != '@') { continue; }
-
+		foreach (findCells($map, '@') as [$x, $y]) {
 			$adjacentRolls = 0;
 			foreach (getAllAdjacentCells($map, $x,$y, true) as [$aX, $aY]) {
 				if (($map[$aY][$aX] ?? '.') == '@') {
