@@ -12,13 +12,14 @@
 		foreach (cells($map) as [$x, $y, $cell]) {
 			if ($cell != '@') { continue; }
 
-			$counts = [];
-			foreach (getAdjacentCells($map, $x,$y, true) as [$aX, $aY]) {
-				$aC = $map[$aY][$aX] ?? '.';
-				$counts[$aC] = ($counts[$aC] ?? 0) + 1;
+			$adjacentRolls = 0;
+			foreach (getAllAdjacentCells($map, $x,$y, true) as [$aX, $aY]) {
+				if (($map[$aY][$aX] ?? '.') == '@') {
+					$adjacentRolls++;
+				}
 			}
 
-			if (($counts['@'] ?? 0) < 4) {
+			if ($adjacentRolls < 4) {
 				$count++;
 				$newMap[$y][$x] = '.';
 			}
