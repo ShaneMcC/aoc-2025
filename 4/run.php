@@ -5,10 +5,30 @@
 
 	$part1 = 0;
 
-	function removeRolls(&$map) {
+	function getWantedNeighbours($map, $previousRemovals) {
+		foreach ($previousRemovals as [$x, $y]) {
+			foreach (getAllAdjacentCells($map, $x,$y, true) as [$aX, $aY]) {
+				if (($map[$aY][$aX] ?? '.') == '@') {
+					yield [$aX, $aY];
+				}
+			}
+		}
+	}
+
+	function removeRolls(&$map, $previousRemovals = null) {
 		$removals = [];
 
-		foreach (wantedCells($map, '@') as [$x, $y]) {
+		if ($previousRemovals == null) {
+			$loop = wantedCells($map, '@');
+		} else {
+			$loop = getWantedNeighbours($map, $previousRemovals);
+		}
+
+		$alreadyTested = [];
+		foreach ($loop as [$x, $y]) {
+			if (isset($alreadyTested["{$x}, {$y}"])) { continue; }
+			$alreadyTested["{$x}, {$y}"] = true;
+
 			$adjacentRolls = 0;
 			foreach (getAllAdjacentCells($map, $x,$y, true) as [$aX, $aY]) {
 				if (($map[$aY][$aX] ?? '.') == '@') {
@@ -26,16 +46,18 @@
 			$map[$y][$x] = '.';
 		}
 
-		return count($removals);
+		return $removals;
 	}
 
-	$part1 = removeRolls($map);
+	$removals = removeRolls($map, null);
+	$part1 = count($removals);
 	echo 'Part 1: ', $part1, "\n";
 
 	$part2 = $count = $part1;
 
 	do {
-		$count = removeRolls($map);
+		$removals = removeRolls($map, $removals);
+		$count = count($removals);
 		$part2 += $count;
 	} while ($count != 0);
 	echo 'Part 2: ', $part2, "\n";
