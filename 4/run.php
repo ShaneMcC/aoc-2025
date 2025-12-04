@@ -6,9 +6,13 @@
 	$part1 = 0;
 
 	function getWantedNeighbours($map, $previousRemovals) {
+		$alreadyYielded = [];
 		foreach ($previousRemovals as [$x, $y]) {
 			foreach (getAllAdjacentCells($map, $x,$y, true) as [$aX, $aY]) {
+				if (isset($alreadyYielded["{$aX}, {$aY}"])) { continue; }
+
 				if (($map[$aY][$aX] ?? '.') == '@') {
+					$alreadyYielded["{$aX}, {$aY}"] = true;
 					yield [$aX, $aY];
 				}
 			}
@@ -24,11 +28,7 @@
 			$loop = getWantedNeighbours($map, $previousRemovals);
 		}
 
-		$alreadyTested = [];
 		foreach ($loop as [$x, $y]) {
-			if (isset($alreadyTested["{$x}, {$y}"])) { continue; }
-			$alreadyTested["{$x}, {$y}"] = true;
-
 			$adjacentRolls = 0;
 			foreach (getAllAdjacentCells($map, $x,$y, true) as [$aX, $aY]) {
 				if (($map[$aY][$aX] ?? '.') == '@') {
