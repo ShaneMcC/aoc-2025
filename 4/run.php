@@ -10,13 +10,15 @@
 		$newMap = $map;
 
 		foreach (cells($map) as [$x, $y, $cell]) {
+			if ($cell != '@') { continue; }
+
 			$counts = [];
 			foreach (getAdjacentCells($map, $x,$y, true) as [$aX, $aY]) {
 				$aC = $map[$aY][$aX] ?? '.';
 				$counts[$aC] = ($counts[$aC] ?? 0) + 1;
 			}
 
-			if ($cell == '@' && ($counts['@'] ?? 0) < 4) {
+			if (($counts['@'] ?? 0) < 4) {
 				$count++;
 				$newMap[$y][$x] = '.';
 			}
@@ -25,11 +27,10 @@
 		return [$count, $newMap];
 	}
 
-	$part1 = removeRolls($map)[0];
+	[$part1, $map] = removeRolls($map);
 	echo 'Part 1: ', $part1, "\n";
 
-	$part2 = 0;
-	$count = 0;
+	$part2 = $count = $part1;
 
 	do {
 		[$count, $map] = removeRolls($map);
