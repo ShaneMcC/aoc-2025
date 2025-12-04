@@ -15,6 +15,7 @@
 			foreach (getAllAdjacentCells($map, $x,$y, true) as [$aX, $aY]) {
 				if (($map[$aY][$aX] ?? '.') == '@') {
 					$adjacentRolls++;
+					if ($adjacentRolls >= 4) { break; }
 				}
 			}
 
