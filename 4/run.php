@@ -5,9 +5,8 @@
 
 	$part1 = 0;
 
-	function removeRolls($map) {
-		$count = 0;
-		$newMap = $map;
+	function removeRolls(&$map) {
+		$removals = [];
 
 		foreach (cells($map) as [$x, $y, $cell]) {
 			if ($cell != '@') { continue; }
@@ -20,21 +19,24 @@
 			}
 
 			if ($adjacentRolls < 4) {
-				$count++;
-				$newMap[$y][$x] = '.';
+				$removals[] = [$x, $y];
 			}
 		}
 
-		return [$count, $newMap];
+		foreach ($removals as [$x, $y]) {
+			$map[$y][$x] = '.';
+		}
+
+		return count($removals);
 	}
 
-	[$part1, $map] = removeRolls($map);
+	$part1 = removeRolls($map);
 	echo 'Part 1: ', $part1, "\n";
 
 	$part2 = $count = $part1;
 
 	do {
-		[$count, $map] = removeRolls($map);
+		$count = removeRolls($map);
 		$part2 += $count;
 	} while ($count != 0);
 	echo 'Part 2: ', $part2, "\n";
