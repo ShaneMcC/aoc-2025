@@ -6,29 +6,35 @@
 	$beams = [];
 	$start = findCells($input, 'S')[0];
 
-	$beams[] = $start;
+	$beams[] = [$start[0], $start[1], 1];
 
 	$map = $input;
 	$part1 = 0;
+	$values = [];
+	$values[$start[0]] = 1;
+
 	while (!empty($beams)) {
 		[$bX, $bY] = array_shift($beams);
-
-		if (!isset($map[$bY][$bX])) { continue; }
-
-		$map[$bY][$bX] = '|';
-
 		$next = $map[$bY + 1][$bX] ?? '';
+
 		if ($next == '.') {
 			$beams[] = [$bX, $bY + 1];
 		} else if ($next == '^') {
 			$part1++;
-			$beams[] = [$bX + 1, $bY + 1];
-			$beams[] = [$bX - 1, $bY + 1];
+			$options = [];
+			$options[] = [$bX + 1, $bY + 1];
+			$options[] = [$bX - 1, $bY + 1];
+
+			foreach ($options as [$oX, $oY]) {
+				if (($map[$oY][$oX] ?? '') != '.') { continue; }
+				$beams[] = [$oX, $oY];
+
+				$values[$oX] = ($values[$oX] ?? 0) + $values[$bX];
+			}
+			$values[$bX] = 0;
 			$map[$bY + 1][$bX] = 'x';
 		}
 	}
 
 	echo 'Part 1: ', $part1, "\n";
-
-	// $part2 = 0;
-	// echo 'Part 2: ', $part2, "\n";
+	echo 'Part 2: ', array_sum($values), "\n";
