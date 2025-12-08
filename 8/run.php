@@ -19,7 +19,8 @@
 	}
 
 	function getDistances($points, $min = null, $max = null) {
-		$distances = [];
+		$distances = new SplPriorityQueue();
+		$distances->setExtractFlags(SplPriorityQueue::EXTR_DATA);
 
 		$keys = array_keys($points);
 		for ($i = 0; $i < count($keys); $i++) {
@@ -33,16 +34,15 @@
 
 				if ($min != null && $distance < $min) { continue; }
 				if ($max != null && $distance > $max) { continue; }
-				$distances[] = ['distance' => $distance, 'a' => $entryId, 'b' => $otherId];
+				$distances->insert(['a' => $entryId, 'b' => $otherId], 0-$distance);
 			}
 		}
-		usort($distances, fn($a,$b) => $b['distance'] <=> $a['distance']);
 
 		return $distances;
 	}
 
 	$min = $max = 0;
-	$distances = [];
+	$distances = new SplPriorityQueue();
 	for ($i = 0; count($circuits) > 1; $i++) {
 		if ($i == (isTest() ? 10 : 1000)) {
 			uasort($circuits, fn($a, $b) => count($b) <=> count($a));
@@ -52,13 +52,13 @@
 			echo 'Part 1: ', $part1, "\n";
 		}
 
-		while (empty($distances)) {
+		while ($distances->isEmpty()) {
 			$min = $max;
 			$max += 500000000;
 			$distances = getDistances($points, $min, $max);
 		}
 
-		$distance = array_pop($distances);
+		$distance = $distances->extract();
 
 		$aCircuit = $points[$distance['a']]['circuit'];
 		$bCircuit = $points[$distance['b']]['circuit'];
