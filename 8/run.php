@@ -32,8 +32,14 @@
 	}
 	usort($distances, fn($a,$b) => $a['distance'] <=> $b['distance']);
 
-	for ($i = 0; $i < (isTest() ? 10 : 1000); $i++) {
-		if (!isset($distances[$i])) { continue; }
+	for ($i = 0; count($circuits) > 1; $i++) {
+		if ($i == (isTest() ? 10 : 1000)) {
+			uasort($circuits, fn($a, $b) => count($b) <=> count($a));
+			$keys = array_keys($circuits);
+
+			$part1 = count($circuits[$keys[0]]) * count($circuits[$keys[1]]) * count($circuits[$keys[2]]);
+			echo 'Part 1: ', $part1, "\n";
+		}
 
 		$aCircuit = $points[$distances[$i]['a']]['circuit'];
 		$bCircuit = $points[$distances[$i]['b']]['circuit'];
@@ -45,12 +51,12 @@
 			$points[$pId]['circuit'] = $aCircuit;
 		}
 		unset($circuits[$bCircuit]);
+
+		if (count($circuits) == 1) {
+			$aX = $points[$distances[$i]['a']]['x'];
+			$bX = $points[$distances[$i]['b']]['x'];
+
+			$part2 = $aX * $bX;
+			echo 'Part 2: ', $part2, "\n";
+		}
 	}
-	uasort($circuits, fn($a, $b) => count($b) <=> count($a));
-	$keys = array_keys($circuits);
-
-	$part1 = count($circuits[$keys[0]]) * count($circuits[$keys[1]]) * count($circuits[$keys[2]]);
-	echo 'Part 1: ', $part1, "\n";
-
-	// $part2 = 0;
-	// echo 'Part 2: ', $part2, "\n";
