@@ -18,19 +18,32 @@
 		return pow($x1 - $x2, 2) + pow($y1 - $y2, 2) + pow($z1 - $z2, 2);
 	}
 
-	$keys = array_keys($points);
-	for ($i = 0; $i < count($keys); $i++) {
-		for ($j = $i + 1; $j < count($keys); $j++) {
-			$entryId = $keys[$i];
-			$otherId = $keys[$j];
-			$entry = $points[$entryId];
-			$other = $points[$otherId];
+	function getDistances($points, $min = null, $max = null) {
+		$distances = [];
 
-			$distance = dist($entry['x'], $entry['y'], $entry['z'], $other['x'], $other['y'], $other['z']);
-			$distances[] = ['distance' => $distance, 'a' => $entryId, 'b' => $otherId];
+		$keys = array_keys($points);
+		for ($i = 0; $i < count($keys); $i++) {
+			for ($j = $i + 1; $j < count($keys); $j++) {
+				$entryId = $keys[$i];
+				$otherId = $keys[$j];
+				$entry = $points[$entryId];
+				$other = $points[$otherId];
+
+				$distance = dist($entry['x'], $entry['y'], $entry['z'], $other['x'], $other['y'], $other['z']);
+
+				if ($min != null && $distance < $min) { continue; }
+				if ($max != null && $distance > $max) { continue; }
+				$distances[] = ['distance' => $distance, 'a' => $entryId, 'b' => $otherId];
+			}
 		}
+		usort($distances, fn($a,$b) => $b['distance'] <=> $a['distance']);
+
+		return $distances;
 	}
-	usort($distances, fn($a,$b) => $a['distance'] <=> $b['distance']);
+
+	$min = 0;
+	$max = 1000000000;
+	$distances = [];
 
 	for ($i = 0; count($circuits) > 1; $i++) {
 		if ($i == (isTest() ? 10 : 1000)) {
@@ -41,8 +54,16 @@
 			echo 'Part 1: ', $part1, "\n";
 		}
 
-		$aCircuit = $points[$distances[$i]['a']]['circuit'];
-		$bCircuit = $points[$distances[$i]['b']]['circuit'];
+		while (empty($distances)) {
+			$distances = getDistances($points, $min, $max);
+			$min = $max;
+			$max *= 1000;
+		}
+
+		$distance = array_pop($distances);
+
+		$aCircuit = $points[$distance['a']]['circuit'];
+		$bCircuit = $points[$distance['b']]['circuit'];
 
 		if ($aCircuit == $bCircuit) { continue; }
 
@@ -53,8 +74,8 @@
 		unset($circuits[$bCircuit]);
 
 		if (count($circuits) == 1) {
-			$aX = $points[$distances[$i]['a']]['x'];
-			$bX = $points[$distances[$i]['b']]['x'];
+			$aX = $points[$distance['a']]['x'];
+			$bX = $points[$distance['b']]['x'];
 
 			$part2 = $aX * $bX;
 			echo 'Part 2: ', $part2, "\n";
