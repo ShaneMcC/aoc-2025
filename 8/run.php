@@ -41,10 +41,8 @@
 		return $distances;
 	}
 
-	$min = 0;
-	$max = 1000000000;
+	$min = $max = 0;
 	$distances = [];
-
 	for ($i = 0; count($circuits) > 1; $i++) {
 		if ($i == (isTest() ? 10 : 1000)) {
 			uasort($circuits, fn($a, $b) => count($b) <=> count($a));
@@ -55,9 +53,9 @@
 		}
 
 		while (empty($distances)) {
-			$distances = getDistances($points, $min, $max);
 			$min = $max;
-			$max *= 1000;
+			$max += 500000000;
+			$distances = getDistances($points, $min, $max);
 		}
 
 		$distance = array_pop($distances);
