@@ -1,14 +1,12 @@
 #!/usr/bin/php
 <?php
 	require_once(dirname(__FILE__) . '/../common/common.php');
-	$input = getInputMap();
+	$map = getInputMap();
 
 	$beams = [];
-	$start = findCells($input, 'S')[0];
+	$start = findCells([$map[0]], 'S')[0];
+	$beams[] = [$start[0], $start[1]];
 
-	$beams[] = [$start[0], $start[1], 1];
-
-	$map = $input;
 	$part1 = 0;
 	$values = [];
 	$values[$start[0]] = 1;
