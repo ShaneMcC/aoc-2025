@@ -10,7 +10,7 @@
 		preg_match('#(.*),(.*),(.*)#ADi', $line, $m);
 		[$all, $x, $y, $z] = $m;
 		$circuits[$circuit][] = "{$x},{$y},{$z}";
-		$points["{$x},{$y},{$z}"] = ['x' => $x, 'y' => $y, 'z' => $z, 'circuit' => $circuit, 'distances' => []];
+		$points["{$x},{$y},{$z}"] = ['x' => $x, 'y' => $y, 'z' => $z, 'circuit' => $circuit];
 		$circuit++;
 	}
 
@@ -18,16 +18,16 @@
 		return sqrt(pow($x1 - $x2, 2) + pow($y1 - $y2, 2) + pow($z1 - $z2, 2));
 	}
 
-	$distances = [];
-	foreach ($points as $eId => $e) {
-		$found = false;
-		foreach ($points as $oeId => $o) {
-			if ($eId == $oeId) { $found = true; continue; }
-			if ($found == false) { continue; }
+	$keys = array_keys($points);
+	for ($i = 0; $i < count($keys); $i++) {
+		for ($j = $i + 1; $j < count($keys); $j++) {
+			$entryId = $keys[$i];
+			$otherId = $keys[$j];
+			$entry = $points[$entryId];
+			$other = $points[$otherId];
 
-			$distance = dist($e['x'], $e['y'], $e['z'], $o['x'], $o['y'], $o['z']);
-			$points[$eId]['distances'][$oeId] = $distance;
-			$distances[] = ['distance' => $distance, 'a' => $eId, 'b' => $oeId];
+			$distance = dist($entry['x'], $entry['y'], $entry['z'], $other['x'], $other['y'], $other['z']);
+			$distances[] = ['distance' => $distance, 'a' => $entryId, 'b' => $otherId];
 		}
 	}
 	usort($distances, fn($a,$b) => $a['distance'] <=> $b['distance']);
