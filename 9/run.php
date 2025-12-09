@@ -48,8 +48,8 @@
         return true;
 	}
 
-	$part1 = PHP_INT_MIN;
-	$part2 = PHP_INT_MIN;
+	$areas = new SplPriorityQueue();
+	$areas->setExtractFlags(SplPriorityQueue::EXTR_DATA);
 
 	for ($i = 0; $i < count($tiles); $i++) {
 		for ($j = $i + 1; $j < count($tiles); $j++) {
@@ -57,11 +57,19 @@
 			[$jX, $jY] = $tiles[$j];
 
 			$area = area($iX, $iY,$jX, $jY);
-			$part1 = max($part1, $area);
+			$areas->insert(['size' => $area, 'a' => [$iX, $iY], 'b' => [$jX, $jY]], $area);
+		}
+	}
 
-			if ($area > $part2 && isValidArea($iX, $iY,$jX, $jY)) {
-				$part2 = max($part2, $area);
-			}
+	$part1 = $areas->top()['size'];
+	$part2 = PHP_INT_MIN;
+	while (!$areas->isEmpty()) {
+		['size' => $area, 'a' => [$iX, $iY], 'b' => [$jX, $jY]] = $areas->extract();
+
+		if ($area < $part2) { break; }
+
+		if (isValidArea($iX, $iY,$jX, $jY)) {
+			$part2 = max($part2, $area);
 		}
 	}
 
