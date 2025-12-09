@@ -66,10 +66,9 @@
 	while (!$areas->isEmpty()) {
 		['size' => $area, 'a' => [$iX, $iY], 'b' => [$jX, $jY]] = $areas->extract();
 
-		if ($area < $part2) { break; }
-
 		if (isValidArea($iX, $iY,$jX, $jY)) {
-			$part2 = max($part2, $area);
+			$part2 = $area;
+			break;
 		}
 	}
 
