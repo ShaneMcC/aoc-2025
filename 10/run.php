@@ -59,55 +59,54 @@
 	function calculateJoltagePresses($machine) {
 		[$targetLights, $buttons, $targetJoltages] = $machine;
 
-		$target = json_encode($targetJoltages);
-
-		$buttonLines = [];
-		foreach ($buttons as $button) {
-			$button = strrev(decbin($button));
-			$button .= str_repeat('0', count($targetJoltages) - strlen($button));
-
-			$buttonLines[] = 'buttons.append([' . implode(',', str_split($button)) . "])";
-		}
-		$buttonLines = implode("\n", $buttonLines);
-
 		$lines = [];
-		$lines[] = <<<Z3CODE
-		#!/usr/bin/python
-		from z3 import Int, Optimize, Sum, sat
-		total = 0
-		target = {$target}
+		$lines[] = '(set-option :produce-models true)';
+		$lines[] = '(declare-fun total () Int)';
 
-		buttons = []
-		{$buttonLines}
+		// Each button, and how many minimum presses they need
+		for ($i = 0; $i < count($buttons); $i++) {
+			$lines[] = "(declare-fun Button{$i} () Int)";
+			$lines[] = "(assert (>= Button{$i} 0))";
+		}
 
-		presses = [Int(f'B{i}') for i in range(len(buttons))]
-		opt = Optimize()
+		// Which buttons modify which joltages
+		$buttonModifiers = array_fill(0, count($targetJoltages), []);
 
-		for p in presses:
-			opt.add(p >= 0)
+		foreach ($buttons as $i => $button) {
+			for ($pos = 0; $pos < count($targetJoltages); $pos++) {
+				if ($button & (1 << $pos)) {
+					$buttonModifiers[$pos][] = "Button{$i}";
+				}
+			}
+		}
 
-		for pos in range(len(target)):
-			contribution = Sum([presses[i] for i, b in enumerate(buttons) if b[pos]])
-			opt.add(contribution == target[pos])
+		// And then assert that pressing them updates the target.
+		foreach ($targetJoltages as $pos => $target) {
+			$terms = implode(' ', $buttonModifiers[$pos]);
+			$lines[] = "(assert (= (+ {$terms}) {$target}))";
+		}
 
-		total_presses = Sum(presses)
-		opt.minimize(total_presses)
-
-		if opt.check() == sat:
-			model = opt.model()
-			total = model.eval(total_presses)
-
-		print(total)
-		Z3CODE;
+		// Calculate the total presses.
+		$allButtons = implode(' ', array_map(fn($i) => "Button{$i}", range(0, count($buttons) - 1)));
+		$lines[] = "(assert (= total (+ {$allButtons})))";
+		$lines[] = "(minimize total)";
+		$lines[] = '(check-sat)';
+		$lines[] = '(get-value (total))';
 
 		$code = implode("\n", $lines);
-		$tempFile = tempnam(sys_get_temp_dir(), 'AOC25');
-		file_put_contents($tempFile, $code);
-		chmod($tempFile, 0700);
-		$minCost = exec($tempFile);
-		unlink($tempFile);
 
-		return $minCost;
+		$proc = proc_open('z3 -in', [0 => ['pipe', 'r'], 1 => ['pipe', 'w']], $pipes);
+		fwrite($pipes[0], $code);
+		fclose($pipes[0]);
+		$minCost = stream_get_contents($pipes[1]);
+		fclose($pipes[1]);
+		proc_close($proc);
+
+		if (preg_match('#\(\(total (.*)\)\)#', $minCost, $m)) {
+			return $m[1];
+		} else {
+			return 0;
+		}
 	}
 
 
