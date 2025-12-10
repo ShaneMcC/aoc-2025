@@ -22,41 +22,102 @@
 			$buttons[] = $value;
 		}
 
-		$entries[] = [$lights, $buttons, explode(',', $joltages)];
+		$joltages = array_map(fn($a) => (int)$a, explode(',', $joltages));
+
+		$entries[] = [$lights, $buttons, $joltages];
 	}
 
 	function getButtonPresses($machine) {
 		[$targetLights, $buttons, $targetJoltages] = $machine;
 
-		$startLights = 0;
+		// Apparently, each button only has to be pushed a maximum of 1 time,
+		// so we just need to find the valid combination of pushes.
+		$allPushes = 1 << count($buttons);
+		$result = PHP_INT_MAX;
 
-		$queue = new SplPriorityQueue();
-		$queue->setExtractFlags(SplPriorityQueue::EXTR_DATA);
-		$queue->insert(['lights' => $startLights, 'presses' => 0], 0);
+		for ($combo = 0; $combo < $allPushes; $combo++) {
+			$newLights = 0;
 
-		while (!$queue->isEmpty()) {
-			['lights' => $lights, 'presses' => $presses] = $queue->extract();
-
-			$newPresses = $presses + 1;
-			foreach ($buttons as $button) {
-				$newLights = $lights ^ $button;
-				$queue->insert(['lights' => $newLights, 'presses' => $newPresses], 0 - $newPresses);
-
-				if ($newLights == $targetLights) {
-					return $newPresses;
+			// Push the buttons for this combo and see if that is the target.
+			$newPresses = 0;
+			foreach ($buttons as $i => $button) {
+				// Is this a button we need to press this time?
+				if (($combo >> $i) & 1) {
+					$newLights = $newLights ^ $button;
+					$newPresses++;
 				}
+			}
+
+			if ($newLights == $targetLights) {
+				$result = min($result, $newPresses);
 			}
 		}
 
-		return 0;
+		return $result;
 	}
+
+	function calculateJoltagePresses($machine) {
+		[$targetLights, $buttons, $targetJoltages] = $machine;
+
+		$target = json_encode($targetJoltages);
+
+		$buttonLines = [];
+		foreach ($buttons as $button) {
+			$button = strrev(decbin($button));
+			$button .= str_repeat('0', count($targetJoltages) - strlen($button));
+
+			$buttonLines[] = 'buttons.append([' . implode(',', str_split($button)) . "])";
+		}
+		$buttonLines = implode("\n", $buttonLines);
+
+		$lines = [];
+		$lines[] = <<<Z3CODE
+		#!/usr/bin/python
+		from z3 import Int, Optimize, Sum, sat
+		total = 0
+		target = {$target}
+
+		buttons = []
+		{$buttonLines}
+
+		presses = [Int(f'B{i}') for i in range(len(buttons))]
+		opt = Optimize()
+
+		for p in presses:
+			opt.add(p >= 0)
+
+		for pos in range(len(target)):
+			contribution = Sum([presses[i] for i, b in enumerate(buttons) if b[pos]])
+			opt.add(contribution == target[pos])
+
+		total_presses = Sum(presses)
+		opt.minimize(total_presses)
+
+		if opt.check() == sat:
+			model = opt.model()
+			total = model.eval(total_presses)
+
+		print(total)
+		Z3CODE;
+
+		$code = implode("\n", $lines);
+		$tempFile = tempnam(sys_get_temp_dir(), 'AOC25');
+		file_put_contents($tempFile, $code);
+		chmod($tempFile, 0700);
+		$minCost = exec($tempFile);
+		unlink($tempFile);
+
+		return $minCost;
+	}
+
 
 	$part1 = $part2 = 0;
 	$i = 0;
 	foreach ($entries as $machine) {
 		if (isDebug()) { echo $i++, ' / ', count($entries), "\n"; }
 		$part1 += getButtonPresses($machine);
+		$part2 += calculateJoltagePresses($machine);
 	}
 
 	echo 'Part 1: ', $part1, "\n";
-	// echo 'Part 2: ', $part2, "\n";
+	echo 'Part 2: ', $part2, "\n";
