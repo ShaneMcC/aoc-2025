@@ -39,15 +39,23 @@
 	$part1 = getPaths('you', 'out');
 	echo 'Part 1: ', $part1, "\n";
 
-	$pathsToFFT = getPaths('svr', 'fft');
-	$pathsToDAC = getPaths('fft', 'dac');
-	$pathsToOUT = getPaths('dac', 'out');
+	$paths['SVR-to-FFT'] = getPaths('svr', 'fft');
+	$paths['FFT-to-DAC'] = getPaths('fft', 'dac');
+	$paths['DAC-to-OUT'] = getPaths('dac', 'out');
+	$order = 'SVR-to-FFT-to-DAC-to-OUT';
+	$part2 = array_product($paths);
 
-	$part2 = $pathsToFFT * $pathsToDAC * $pathsToOUT;
-	echo 'Part 2: ', $part2, "\n";
+	if ($part2 == 0) {
+		$paths = [];
+		$paths['SVR-to-DAC'] = getPaths('svr', 'dac');
+		$paths['DAC-to-FFT'] = getPaths('dac', 'fft');
+		$paths['FFT-to-OUT'] = getPaths('fft', 'out');
+		$order = 'SVR-to-DAC-to-FFT-to-OUT';
+		$part2 = array_product($paths);
+	}
+
+	echo 'Part 2: ', $part2, ' (' ,$order, ')', "\n";
 
 	if (isDebug()) {
-		echo "\t", 'pathsToFFT: ', $pathsToFFT, "\n";
-		echo "\t", 'pathsToDAC: ', $pathsToDAC, "\n";
-		echo "\t", 'pathsToOUT: ', $pathsToOUT, "\n";
+		echo json_encode($paths, JSON_PRETTY_PRINT), "\n";
 	}
