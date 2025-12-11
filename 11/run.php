@@ -7,32 +7,47 @@
 	foreach ($input as $line) {
 		preg_match('#(.*): (.*)#ADi', $line, $m);
 		[$all, $input, $ouputs] = $m;
-		$entries[$input] = ['outputs' => explode(' ', $ouputs)];
+		$entries[$input] = ['outputs' => explode(' ', $ouputs), 'inputs' => []];
 	}
 
-	$queue = new SplPriorityQueue();
-	$queue->setExtractFlags(SplPriorityQueue::EXTR_DATA);
+	function getPaths($start, $end, $exclude = []) {
+		global $entries;
 
-	$queue->insert('you', 0);
+		$result = 0;
+		if (!isset($entries[$start])) { return 0; }
 
-	$part1 = 0;
+		$counts[$start] = 1;
+		while (!empty($counts)) {
+			$loc = key($counts);
+			$paths = array_shift($counts);
 
-	while (!$queue->isEmpty()) {
-		$next = $queue->extract();
+			if (!isset($entries[$loc])) { continue; }
 
-		$outputs = $entries[$next]['outputs'];
-
-		foreach ($outputs as $out) {
-			if ($out == 'out') {
-				$part1++;
-			} else {
-				$queue->insert($out, 0);
+			foreach ($entries[$loc]['outputs'] as $next) {
+				if (in_array($next, $exclude)) { continue; }
+				if ($next == $end) {
+					$result += $paths;
+				} else {
+					$counts[$next] = ($counts[$next] ?? 0) + $paths;
+				}
 			}
 		}
+
+		return $result;
 	}
 
-
+	$part1 = getPaths('you', 'out');
 	echo 'Part 1: ', $part1, "\n";
 
-	// $part2 = 0;
-	// echo 'Part 2: ', $part2, "\n";
+	$pathsToFFT = getPaths('svr', 'fft');
+	$pathsToDAC = getPaths('fft', 'dac');
+	$pathsToOUT = getPaths('dac', 'out');
+
+	$part2 = $pathsToFFT * $pathsToDAC * $pathsToOUT;
+	echo 'Part 2: ', $part2, "\n";
+
+	if (isDebug()) {
+		echo "\t", 'pathsToFFT: ', $pathsToFFT, "\n";
+		echo "\t", 'pathsToDAC: ', $pathsToDAC, "\n";
+		echo "\t", 'pathsToOUT: ', $pathsToOUT, "\n";
+	}
