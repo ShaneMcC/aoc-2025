@@ -7,9 +7,9 @@
 	$shapes = [];
 	foreach ($input as $shape) {
 		array_shift($shape);
-		$s = ['shape' => array_map(fn($x) => str_split($x), $shape), 'count' => 0];
-		$s['count'] = count(findCells($s['shape'], '#'));
-		$shapes[] = $s;
+		// $s = ['shape' => array_map(fn($x) => str_split($x), $shape), 'count' => 0];
+		// $s['count'] = count(findCells($s['shape'], '#'));
+		$shapes[] = ['count' => count_chars(implode('', $shape))[ord('#')]];
 	}
 
 	$trees = [];
@@ -26,13 +26,15 @@
 		$needed = 0;
 		foreach ($tree['wanted'] as $i => $count) {
 			$needed += $shapes[$i]['count'] * $count;
-		}
-		if ($needed < $tree['area']) {
-			$part1++;
+
+			if ($needed > $tree['area']) {
+				continue 2;
+			}
 		}
 
 		// For the actual input, apparently, this is enough?
 		// Doesn't work for the test input though...
+		$part1++;
 	}
 
 	echo 'Part 1: ', $part1, "\n";
